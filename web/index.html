@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="es" ng-app="Maps">
+<head>
+    <meta charset="utf-8">
+    <title>Demo Parkiller</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+    <!-- Angular Material style sheet -->
+    <link rel="stylesheet" href="bower_components/angular-material/angular-material.min.css">
+
+    <!-- Tipografías -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic" rel="stylesheet"
+          type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Amaranth:400,400i,700,700i" rel="stylesheet">
+
+    <link rel="stylesheet" href="lib/fonts/materialicon/css/materialdesignicons.min.css">
+    <link rel="stylesheet" href="lib/fonts/fawesome/font-awesome.css">
+    <link rel="stylesheet" href="lib/fonts/ionic/css/ionicons.min.css">
+
+    <!-- CSS Styling -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="lib/animate.css">
+</head>
+<body ng-controller="SetupController as setup">
+<md-sidenav layout="column" md-swipe-left="onSwipeLeftMenu()"
+            md-whiteframe="4" class="md-sidenav-left"
+            md-component-id="configuration" flex>
+    <md-toolbar>
+        <div>
+            <h2 class="md-toolbar-tools">
+                <i class="mdi mdi-navigation"></i>&nbsp;Configuración de la prueba
+            </h2>
+            <div flex></div>
+        </div>
+    </md-toolbar>
+    <md-content layout-padding>
+        <form name="frmGenerate">
+            <md-input-container>
+                <label>Solicitantes</label>
+                <input type="text" ng-model="setup.model.client">
+            </md-input-container>
+            <md-input-container>
+                <label>Conductores</label>
+                <input type="text" ng-model="setup.model.driver">
+            </md-input-container>
+            <md-button ng-click="setup.config()" class="md-raised md-primary" style="margin-top:2em;">
+                Generar Prueba
+            </md-button>
+            <md-button ng-click="setup.registerTravel()" class="md-raised md-primary" ng-if="showTravel"
+                       style="margin-top:2em;">
+                Ir A
+            </md-button>
+            <md-button ng-click="setup.goTo()" ng-if="!showTravel" class="md-raised md-primary"
+                       style="margin-top:2em;">
+                {{setup.drivingMode ? 'Detener' : 'Ir A'}}
+            </md-button>
+        </form>
+    </md-content>
+</md-sidenav>
+<header>
+    <md-toolbar class="simple-header">
+        <div class="md-toolbar-tools">
+            <md-button ng-click="toggleSidenav('configuration')" class="md-icon-button md-tools"
+                       aria-label="Sidebar Menu">
+                <i class="ion-android-menu"></i>
+            </md-button>
+            <span>Demo Parkiller</span>
+            <span flex> </span>
+            <md-button ng-click="toggleSidenav('indications')" ng-if="setup.enabledGoTo"
+                       class="md-icon-button md-tools" aria-label="Indicaciones">
+                <i class="ion-android-walk"></i>
+            </md-button>
+        </div>
+    </md-toolbar>
+</header>
+<md-content style=" height:100%;  border-top: 5px solid #d4fded">
+    <ng-map style="display:block; width: 100%; height:100%;" center="19.4340200, -99.1956010">
+        <transit-layer></transit-layer>
+        <marker ng-repeat="position in setup.positions"
+                id="mkr_{{position.id}}"
+                position="{{position.latitude}},{{position.longitude}}"
+                optimized="false"
+                on-click="setup.selectPosition(position)"
+                icon="{{(position.type == 'client') ? setupMarkers.clients : setupMarkers.drivers }}"
+                draggable="true">
+        </marker>
+
+        <info-window id="detailInfo">
+            <div ng-non-bindable="">
+                Nombre: {{setup.info.full_name}}<br/>
+            </div>
+        </info-window>
+
+        <directions
+                draggable="true"
+                panel="directions-panel"
+                travel-mode="WALKING"
+                origin="{{setup.selected.origin.position}}"
+                destination="{{setup.selected.destination.position}}"
+                on-directions_changed="setup.directionsChanged(evt)">
+        </directions>
+        <street-view-panorama container="streetview"></street-view-panorama>
+    </ng-map>
+    <div ng-show="false">
+        <div id="streetview"></div>
+    </div>
+</md-content>
+<md-sidenav md-component-id="indications" class="md-sidenav-right" md-whiteframe="2">
+    <md-toolbar>
+        <div>
+            <h2 class="md-toolbar-tools">
+                <i class="mdi mdi-directions"></i>&nbsp;Indicaciones
+            </h2>
+            <div flex></div>
+        </div>
+    </md-toolbar>
+    <md-content layout-padding id="directions-panel">
+        <div ng-if="onRoad" style="width: 100%">
+            <section style="display: inline-block; width: 50%">
+                <h3>Cliente: </h3>
+                <span><strong>{{setup.travel.client.full_name}}</strong></span>
+            </section>
+            <section style="display: inline-block; width: 50%">
+                <h3>Conductor: </h3>
+                <span><strong>{{setup.travel.driver.full_name}}</strong></span>
+            </section>
+        </div>
+    </md-content>
+</md-sidenav>
+
+<script src="bower_components/angular/angular.min.js"></script>
+<script src="bower_components/angular-animate/angular-animate.min.js"></script>
+<script src="bower_components/angular-aria/angular-aria.min.js"></script>
+<script src="bower_components/angular-messages/angular-messages.min.js"></script>
+<script src="bower_components/angular-material/angular-material.min.js"></script>
+<script src="bower_components/angular-resource/angular-resource.min.js"></script>
+<script src="bower_components/ngmap/build/scripts/ng-map.min.js"></script>
+<script src="bower_components/ng-lodash/build/ng-lodash.min.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCoXjgChkSTZbRd9OXyhgSLEfjuqDWwpv0"></script>
+<script src="https://js.pusher.com/3.2/pusher.min.js"></script>
+
+<script src="js/app.js"></script>
+<script src="js/config.js"></script>
+<script src="js/controllers.js"></script>
+<script src="js/services.js"></script>
+</body>
+</html>

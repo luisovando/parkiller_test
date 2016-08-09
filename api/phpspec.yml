@@ -1,0 +1,5 @@
+suites:
+    main:
+        namespace: ParkillerDemo
+        psr4_prefix: ParkillerDemo
+        src_path: app
